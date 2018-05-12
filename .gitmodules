@@ -1,0 +1,3 @@
+[submodule "poster-collection-src"]
+	path = poster-collection-src
+	url = git@github.com:gyakkun/poster-collection.git
