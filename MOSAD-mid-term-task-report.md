@@ -382,6 +382,36 @@ public static void SendTileNotification(Star item)
 
  ## Media - BGM播放
 
+本来是没有这个功能的, 首席程序员说要有, 于是就有了这个功能(笑)。
+
+按钮部分
+
+```xaml
+<!-- MainPage.xaml -->
+<StackPanel Grid.Row="2" Margin="5" Orientation="Horizontal" Name="pageChangePanel" HorizontalAlignment="Right">
+                        <MediaElement Source = "Assets/music.mp3" AutoPlay = "True" Name="music" IsLooping="True"/>
+                        <AppBarButton Name="start" Icon="Play" FontSize="20" Click="start_Click" HorizontalAlignment="Left" Label="BGM play"/>
+                        <AppBarButton Name="pause" Icon="Pause" FontSize="20" Click="pause_Click" Label="BGM pause"/>
+                        <AppBarButton Icon="Previous" Name="PreviousAppBarButton" Click="PreviousAppBarButton_Click" Label="Previous"/>
+                        <AppBarButton Icon="Next" Name="NextAppBarButton" Click="NextAppBarButton_Click" Label="Next"/>
+                    </StackPanel>
+```
+
+逻辑:
+
+```c#
+// MainPage.xaml.cs
+private void pause_Click(object sender, RoutedEventArgs e)
+        {
+            music.Pause();
+        }
+
+        private void start_Click(object sender, RoutedEventArgs e)
+        {
+            music.Play();
+        }
+```
+
 
 
 
