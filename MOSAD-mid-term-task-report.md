@@ -4,10 +4,11 @@ gyakkun part, @Team **ZgenY an Gyak**
 
 ----------------------------------------
 
-目录
+**目录**
 
 [TOC]
 
+## Overview - 概览
 
 本项目所用到的UWP开发中的知识点
 
@@ -46,7 +47,8 @@ outline
 大量采用相对布局, 如在MainPage.xaml中使用"RelativePanel"来定义汉堡界面按钮, 点击汉堡按钮时候会弹出展开的文字菜单。SplitView.Content中, 使用行自动宽高以实现行元素个数随窗口宽度变化。
 
 ```xaml
-	<RelativePanel>
+<!-- MainPage.xaml -->
+<RelativePanel>
 		<Button Name="HamburgerButton" 
 			RelativePanel.AlignLeftWithPanel="True"
 			FontFamily="Segoe MDL2 Assets"
@@ -55,8 +57,11 @@ outline
 			Click="HamburgerButton_Click" />
 ```
 
+
+
 ```xaml
-	<SplitView.Content>
+<!-- MainPage.xaml -->
+<SplitView.Content>
 		<Grid>
 			<Grid.RowDefinitions>
 				<RowDefinition Height="Auto"/>
@@ -74,17 +79,22 @@ outline
 MainPage部分, 使用Frame标签嵌入ListPage, 
 
 ```xaml
-	</StackPanel>
+<!-- MainPage.xaml -->
+</StackPanel>
 	<Frame Name="ListFrame" Grid.Row="1" Navigated="ListFrame_Navigated"/>
 ```
+在App.xaml.cs中定义OnNavigated方法, 控制ListPage的显示：
+
 ```c#
-	CurrentSourcePageType.Equals(typeof(ListPage))&&!ListFrame.CurrentSourcePageType.Equals(typeof(CollectorItems)) ? Visibility.Visible : Visibility.Collapsed;
+//App.xaml.cs
+CurrentSourcePageType.Equals(typeof(ListPage))&&!ListFrame.CurrentSourcePageType.Equals(typeof(CollectorItems)) ? Visibility.Visible : Visibility.Collapsed;
 ```
 
 而后在ListPage中, 定义数据模板, 对每个元素(电影项/TV项), 绑定从API获取来的title和poster_path：
 
 ```xaml
-	<DataTemplate x:DataType="data:MovieResult" x:Key="MovieResultDataTemplate">
+<!-- ListPage.xaml -->
+<DataTemplate x:DataType="data:MovieResult" x:Key="MovieResultDataTemplate">
 		<StackPanel HorizontalAlignment="Center">
 			<Image Height="300" Source="{x:Bind poster_path}" Margin="5"/>
 			<TextBlock FontSize="16" Margin="0,0,0,5" Text="{x:Bind title}" TextWrapping="Wrap" HorizontalAlignment="Center" />
@@ -92,7 +102,8 @@ MainPage部分, 使用Frame标签嵌入ListPage,
 	</DataTemplate>
 ```
 ```xaml
-	<DataTemplate x:DataType="data:TVResult" x:Key="TVResultDataTemplate">
+<!-- ListPage.xaml -->
+<DataTemplate x:DataType="data:TVResult" x:Key="TVResultDataTemplate">
 		<StackPanel HorizontalAlignment="Center">
 			<Image Height="300" Source="{x:Bind poster_path}" Margin="5"/>
 			<TextBlock FontSize="16" Margin="0,0,0,5" Text="{x:Bind name}" TextWrapping="Wrap" HorizontalAlignment="Center" />
@@ -107,7 +118,7 @@ MainPage部分, 使用Frame标签嵌入ListPage,
 新建一个CollectorItems.xaml, 专门负责收藏夹逻辑。由于数据持久化的需要, 在ViewModel中创建db实例, 使用SQLite来存储收藏夹项：
 
 ```c#
-
+//ViewModel.cs
 private ViewModel()
 {
     SQLiteConnection db = App.conn;
@@ -127,6 +138,7 @@ private ViewModel()
 此处截取添加收藏夹项目的一小片段作为引例。
 
 ```c#
+//ViewModel.cs
 public void AddStar(Star st)
         {
 
@@ -151,6 +163,90 @@ public void AddStar(Star st)
 
 
 
+ ## App to app communication - 利用系统分享功能
+
+在详情页(*DetailPage.xaml*)以及独立的海报展示页(*ShowPosterPage.xaml.cs*)加入分享按钮(找不到合适的图标, 遂使用了"people"), 并完成逻辑, 实现分享图片给好友的功能。实测可以通过邮件应用和QQ完成分享。
+
+```xaml
+<!-- ShowPosterPage.xaml -->
+<Page.BottomAppBar>
+        <CommandBar>
+            <AppBarButton
+                x:Name="shareWithFriends"
+                Icon="People"
+                Label="AppBarButton"
+                Click="shareWithFriends_Click" />
+            <AppBarButton Name="savePictureAppBarButton" Icon="Save" Label="Save" Click="savePictureAppBarButton_Click"/>
+            
+        </CommandBar>
+```
+
+逻辑:
+
+```c#
+//ShowPosterPage.xaml.cs
+private void OnShareDataRequested(DataTransferManager sender, DataRequestedEventArgs args)
+        {
+
+            DataRequest request = args.Request;
+
+            var deferral = args.Request.GetDeferral();
+            try {
+                request.Data.Properties.Title = "Share";
+                request.Data.Properties.Description = "Share this picture.";
+                request.Data.SetText(url);
+                //添加图片
+                RandomAccessStreamReference imageRASR = RandomAccessStreamReference.CreateFromUri(((BitmapImage)image.Source).UriSource);
+                // 建议用Thumbnail分享文件
+                request.Data.Properties.Thumbnail = imageRASR;
+                request.Data.SetBitmap(imageRASR);
+            }
+            finally
+            {
+                deferral.Complete();
+            }
+        }
+        private void shareWithFriends_Click(object sender, RoutedEventArgs e)
+        {
+            var s = sender as FrameworkElement;
+            //var item = (Models.MovieDetail)s.DataContext;
+            //App.title = item.title;
+            //App.poster_path = item.poster_path;
+            DataTransferManager.ShowShareUI();
+        }
+```
+
+
+
+ ## Network accessing - 全程使用TMDB API
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ ## File management
+
+ ## Live tiles
+
+ ## Media
 
 
 
