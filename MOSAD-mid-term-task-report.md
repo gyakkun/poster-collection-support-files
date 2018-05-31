@@ -351,9 +351,36 @@ private async void GridView_MovieItemClick(object sender, ItemClickEventArgs e)
 
 
 
- ## Live tiles
+ ## Live tiles - 收藏夹与动态磁贴联动
 
- ## Media
+有了收藏夹, 很自然就想到与磁贴进行联动, 把收藏的内容展示到磁贴上去。
+
+磁贴的定义框架写在tiles.xml中, 此处展示绑定收藏夹的部分代码
+
+```c#
+// Service\TilesService.cs
+public static void SendTileNotification(Star item)
+         {
+                XDocument xdoc = XDocument.Load("tiles.xml");
+                // Create the tile notification
+                string temp = xdoc.ToString();
+                string destXml = temp.Replace("title", item.title);
+                destXml = destXml.Replace("comment", item.comment);
+                destXml = destXml.Replace("postersrc", item.posterpath);
+                destXml = destXml.Replace("backgroundsrc", item.imagepath);
+                XmlDocument xml = new XmlDocument();
+                xml.LoadXml(destXml);
+
+                //3.然后用Update方法来更新这个磁贴
+                TileNotification notification = new TileNotification(xml);
+            
+                // Send the notification
+                App.GetTileUpdater().Update(notification);
+```
+
+
+
+ ## Media - BGM播放
 
 
 
