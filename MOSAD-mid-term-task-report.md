@@ -165,7 +165,7 @@ public void AddStar(Star st)
 
  ## App to app communication - 利用系统分享功能
 
-在详情页(*DetailPage.xaml*)以及独立的海报展示页(*ShowPosterPage.xaml.cs*)加入分享按钮(找不到合适的图标, 遂使用了"people"), 并完成逻辑, 实现分享图片给好友的功能。实测可以通过邮件应用和QQ完成分享。
+在详情页(*DetailPage.xaml*)以及独立的海报展示页(*ShowPosterPage.xaml.cs*)加入分享按钮(找不到合适的图标, 遂使用了"people"), 并完成逻辑, 实现分享图片和剧情简介给好友的功能。实测可以通过Win10自带邮件应用和QQ完成分享。
 
 ```xaml
 <!-- ShowPosterPage.xaml -->
@@ -209,9 +209,6 @@ private void OnShareDataRequested(DataTransferManager sender, DataRequestedEvent
         private void shareWithFriends_Click(object sender, RoutedEventArgs e)
         {
             var s = sender as FrameworkElement;
-            //var item = (Models.MovieDetail)s.DataContext;
-            //App.title = item.title;
-            //App.poster_path = item.poster_path;
             DataTransferManager.ShowShareUI();
         }
 ```
@@ -220,25 +217,101 @@ private void OnShareDataRequested(DataTransferManager sender, DataRequestedEvent
 
  ## Network accessing - 全程使用TMDB API
 
+本次UWP其中项目的核心便是获取电影海报数据。在之前的Web课外实践中, 得知了TMDB这个网站以及其较完善的API, 遂采用其作为本项目的核心API。但在后期的开发与使用中逐渐发现**学校网络对该国外API的访问性能并不太好**。经测试人员反馈, 使用杭州电信, 广州花都区移动, 广州电信, 以及美国国内的线路访问速度较快。**TA若使用时出现加载缓慢的现象, **除开敝组在网络优化上存在不足以外, **校园网质量欠佳也是重要的原因之一。**
 
+使用API大量涉及异步方法, 这也是网络编程的核心之一。C#提供了原生的await/async方法库, 使得网络编程变得简单, 比javascript高到不知哪里去了(笑)。
 
+由于通篇都使用到了网络访问, 所以下面会列举出两处核心的调用作为例子。
 
+首页初始化过程, 访问tmdb主页获取推荐列表:
 
+```c#
+//MainPage.xaml.cs 
+if (VideoTypeComboBox.SelectedIndex == 0)
+                {
+                    flag = 0;
+                    String url = String.Format("https://api.themoviedb.org/3/discover/movie?api_key=7888f0042a366f63289ff571b68b7ce0&include_adult=false{0}&page={1}{2}{3}{4}", language,page,Mgenre,releaseYear,sortBy);
+                    HttpClient client = new HttpClient();
+                    String Jresult = await client.GetStringAsync(url);
+                    DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(QueryMovieList));
+                    MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(Jresult));
+                    QueryMovieList queryMovieList = (QueryMovieList)serializer.ReadObject(ms);
+                    if (queryMovieList.total_results == 0)
+                    {
+                        await new Windows.UI.Popups.MessageDialog("Found nothing, please change the key words and try again! ").ShowAsync();
+                    }
+                    else
+                    {
+                        viewModel.clear();
+                        foreach (var result in queryMovieList.results)
+                        {
+                            if (result.poster_path != null)
+                            {
+                                result.poster_path = "https://image.tmdb.org/t/p/w500" + result.poster_path;
+                            }
+                            else
+                            {
+                                result.poster_path = "Assets/defaultPoster.jpg";
+                            }
+                            viewModel.AddMovieResult(result);
+                        }
+                    }
+```
 
+列表详情页, 点进相应的电影项, 需要获取电影详情
 
+```c#
+//ListPage.xaml.cs
+private async void GridView_MovieItemClick(object sender, ItemClickEventArgs e)
+        {
+            try
+            {
+                var item = (MovieResult)e.ClickedItem;
+                String url = String.Format("https://api.themoviedb.org/3/movie/{0}?api_key=7888f0042a366f63289ff571b68b7ce0&append_to_response=casts", item.id);
+                HttpClient client = new HttpClient();
+                String Jresult = await client.GetStringAsync(url);
+                DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(MovieDetail));
+                MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(Jresult));
+                viewModel.TheMovieDetail = (MovieDetail)serializer.ReadObject(ms);
 
+                if (viewModel.TheMovieDetail.backdrop_path != null)
+                {
+                    viewModel.TheMovieDetail.backdrop_path = "https://image.tmdb.org/t/p/original" + viewModel.TheMovieDetail.backdrop_path;
+                }
+                else
+                {
+                    viewModel.TheMovieDetail.backdrop_path = "Assets/defaultBackground.png";
+                }
+                if (viewModel.TheMovieDetail.poster_path != null)
+                {
+                    viewModel.TheMovieDetail.poster_path = "https://image.tmdb.org/t/p/w500" + viewModel.TheMovieDetail.poster_path;
+                }
+                else
+                {
+                    viewModel.TheMovieDetail.poster_path = "Assets/defaultPoster.jpg";
+                }
 
+                foreach (var cast in viewModel.TheMovieDetail.casts.cast)
+                {
+                    if (cast.profile_path != null)
+                    {
+                        cast.profile_path = "https://image.tmdb.org/t/p/w500" + cast.profile_path;
+                    }
+                    else
+                    {
+                        cast.profile_path = "Assets/defaultPhoto.jpg";
+                    }
+                }
 
-
-
-
-
-
-
-
-
-
-
+                this.Frame.Navigate(typeof(DetailPage), 0);
+            }
+            catch
+            {
+                await new Windows.UI.Popups.MessageDialog("Opps! This item cannot be serialized, please try another item! ").ShowAsync();
+            }
+            
+        }
+```
 
 
 
