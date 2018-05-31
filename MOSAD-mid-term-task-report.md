@@ -315,7 +315,41 @@ private async void GridView_MovieItemClick(object sender, ItemClickEventArgs e)
 
 
 
- ## File management
+ ## File management - 可以将海报保存到本地
+
+本UWP项目是想像*AlbumArtDownloader*那样实现下载音乐专辑封面的功能, 因此下载海报是本作品的**核心Feature**之一。虽然相关入口的外观显得偏极简风格了一些, 但可用性与实用性兼具, 能保存最高清晰度的海报, 完美完成了立项之初的目标。
+
+本功能的核心是使用http相关方法, 获取一个文件流。由于流本身可视作一个文件, 因此只要将流这个对象显式转换成文件, 便可以实现文件保存功能。
+
+在ShowPosterPage.xaml中, 加入保存按钮
+
+```xaml
+<!-- ShowPosterPage.xaml -->
+<AppBarButton
+                x:Name="shareWithFriends"
+                Icon="People"
+                Label="AppBarButton"
+                Click="shareWithFriends_Click" />
+            <AppBarButton Name="savePictureAppBarButton" Icon="Save" Label="Save" Click="savePictureAppBarButton_Click"/>
+
+```
+
+核心逻辑:
+
+```c#
+// ShowPosterPage.xaml.cs
+            HttpClient client = new HttpClient();
+            Stream Stream = await client.GetStreamAsync(new Uri(url));
+            using (IRandomAccessStream stream = await outputFile.OpenAsync(FileAccessMode.ReadWrite))
+            {
+
+                await Stream.CopyToAsync(stream.AsStreamForWrite());
+
+            }
+        }
+```
+
+
 
  ## Live tiles
 
