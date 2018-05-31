@@ -1,4 +1,4 @@
-#MOSAD 期中项目 实验报告
+# MOSAD 期中项目 实验报告
 
 gyakkun part
 
@@ -8,22 +8,33 @@ gyakkun part
 
 ```text
 报告要求: 
+
 (2） 实验报告中建议写清楚如何运行，每个知识点对应如何实现的
 ```
 
-###outline
+### outline
+
 (1) Adaptive UI					//全局Adaptive UI
+
 (2) Data Binding				//全局Data Binding
+
 (3) Database 					//本地化收藏夹存储
+
 (4) App to app communication	//分享到SNS
+
 (5) Network accessing 			//全程使用tmdb API
+
 (6) File management				//可以将海报保存到本地
+
 (7) Live tiles 					//收藏夹与动态磁贴联动
+
 (8) 媒体应用					//bgm播放
 
 
 ##Adaptive UI - 全局Adaptive UI
+
 大量采用相对布局, 如在MainPage.xaml中使用"RelativePanel"来定义汉堡界面按钮, 点击汉堡按钮时候会弹出展开的文字菜单。SplitView.Content中, 使用行自动宽高以实现行元素个数随窗口宽度变化。
+
 ```xml
 	<RelativePanel>
 		<Button Name="HamburgerButton" 
@@ -44,8 +55,10 @@ gyakkun part
 			</Grid.RowDefinitions>
 ```
 
-##Data Binding - 全局Data Binding
+## Data Binding - 全局Data Binding
+
 由于需要和服务器进行数据交互, 几乎每个需要展示到获取到的对象的地方都用到了数据绑定, 此处列出比较关键的部分。
+
 MainPage部分, 使用Frame标签嵌入ListPage, 
 
 ```xml
@@ -75,7 +88,7 @@ MainPage部分, 使用Frame标签嵌入ListPage,
 	</DataTemplate>
 ```
 
-##Database - 本地化收藏夹存储
+## Database - 本地化收藏夹存储
 
 
 
